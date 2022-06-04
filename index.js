@@ -1,28 +1,32 @@
 "use strict";
-
+import createAutoComplete from "./modules/autocomplete.js";
 const API_KEY = "91b620f7";
-
-//helper function
-const fetchData = async (searchTerm) => {
-  const response = await axios.get("http://www.omdbapi.com/", {
-    params: {
-      apikey: API_KEY,
-      s: searchTerm,
-    },
-  });
-  if (response.data.Error) return [];
-  return response.data.Search;
-};
 
 createAutoComplete({
   root: document.querySelector(".autocomplete"),
+  renderOption(movie) {
+    return `
+    <img src="${movie.Poster === "N/A" ? "" : movie.Poster}"/>
+    ${movie.Title} (${movie.Year})`;
+  },
+  onOptionSelect(movie) {
+    onMovieSelect(movie);
+  },
+  inputValue(movie) {
+    return movie.Title;
+  },
+  async fetchData(searchTerm) {
+    const response = await axios.get("http://www.omdbapi.com/", {
+      params: {
+        apikey: API_KEY,
+        s: searchTerm,
+      },
+    });
+    if (response.data.Error) return [];
+    return response.data.Search;
+  },
 });
-createAutoComplete({
-  root: document.querySelector(".autocomplete-two"),
-});
-createAutoComplete({
-  root: document.querySelector(".autocomplete-three"),
-});
+
 const onMovieSelect = async (movie) => {
   const response = await axios.get("http://www.omdbapi.com/", {
     params: {
@@ -49,7 +53,6 @@ const movieTemplate = (movieDetail) => {
     </div>
   </div>
 </article>
-
 <article class="notification is-primary">
   <p class="title">${movieDetail.Awards}</p>
   <p class="subtitle">Awards</p>

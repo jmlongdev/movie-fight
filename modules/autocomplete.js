@@ -1,6 +1,14 @@
-const createAutoComplete = ({ root }) => {
+import debounce from "../utils/utils.js";
+
+export default function createAutoComplete({
+  root,
+  renderOption,
+  onOptionSelect,
+  inputValue,
+  fetchData,
+}) {
   root.innerHTML = `
-    <label><b>Search For a Movie</b></label>
+    <label><b>Search</b></label>
     <input class="input"/>
     <div class="dropdown">
     <div class="dropdown-menu">
@@ -13,25 +21,21 @@ const createAutoComplete = ({ root }) => {
   const resultWrapper = root.querySelector(".results");
 
   const onInput = async (event) => {
-    const movies = await fetchData(event.target.value);
-    if (!movies.length) {
+    const items = await fetchData(event.target.value);
+    if (!items.length) {
       dropdown.classList.remove("is-active");
       return;
     }
     resultWrapper.innerHTML = "";
     dropdown.classList.add("is-active");
-    movies.map((movie) => {
+    items.map((item) => {
       const option = document.createElement("a");
       option.classList.add("dropdown-item");
-      option.innerHTML = `
-    <img src="${movie.Poster === "N/A" ? "" : movie.Poster}"/>
-    ${movie.Title}
-    `;
-      //this is a closure function and has access to anything in the movie object
+      option.innerHTML = renderOption(item);
       option.addEventListener("click", () => {
         dropdown.classList.remove("is-active");
-        input.value = movie.Title;
-        onMovieSelect(movie);
+        input.value = inputValue(item);
+        onOptionSelect(item);
       });
       resultWrapper.appendChild(option);
     });
@@ -41,4 +45,4 @@ const createAutoComplete = ({ root }) => {
   document.addEventListener("click", (event) => {
     if (!root.contains(event.target)) dropdown.classList.remove("is-active");
   });
-};
+}
